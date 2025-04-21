@@ -1,2 +1,4 @@
 .venv/
-Dissertation/datasets/
+Dissertation/datasets/berTweet/raw/financial_tweets.csv
+Dissertation/datasets/berTweet/raw/tweets_labelled_09042020_16072020.csv
+Dissertation/datasets/berTweet/raw/Twitter_Data.csv
