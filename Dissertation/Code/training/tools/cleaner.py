@@ -24,4 +24,3 @@ def map(raw_path, delimiter, label, text,  map, clean_path):
     print(ds.head())
     
     return ds
-    
