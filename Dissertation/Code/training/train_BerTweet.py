@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import torch
 from transformers import (
     AutoTokenizer,
     AutoModelForSequenceClassification,
@@ -22,6 +23,7 @@ class FineTuneBerTweet:
         self.model_name = model_name
         self.checkpoint_path = checkpoint_path
         self.saved_model_path = saved_model_path
+        
         self.tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True)
         self.model = AutoModelForSequenceClassification.from_pretrained(
             model_name, num_labels=3
@@ -31,7 +33,7 @@ class FineTuneBerTweet:
             os.makedirs(
                 self.checkpoint_path
             )  # not necessary but in the event that there is no output dir it will create one
-
+        self.model.to("cuda" if torch.cuda.is_available() else "cpu")
     def load_data(self, path):
         df = pd.read_csv(path)
         dataset = Dataset.from_pandas(df)
@@ -88,12 +90,17 @@ class FineTuneBerTweet:
         print(f"Model saved to {self.saved_model_path}")
 
     def load_model(self):
+        
         if os.path.exists(self.saved_model_path) and os.listdir(self.saved_model_path):
-            self.model = AutoModelForSequenceClassification.from_pretrained(
-                self.saved_model_path
-            )
-            self.tokenizer = AutoTokenizer.from_pretrained(self.saved_model_path)
-            print(f"Model loaded from {self.saved_model_path}")
+            try:
+                self.model = AutoModelForSequenceClassification.from_pretrained(
+                    self.saved_model_path
+                )
+                self.tokenizer = AutoTokenizer.from_pretrained(self.saved_model_path)
+                print(f"Model loaded from {self.saved_model_path}")
+            except Exception: 
+                print("Failed to load saved model:")
+                print("Starting with base model instead.")
         else:
             print(
                 f"No saved model found at {self.saved_model_path}, starting with base model."

@@ -12,7 +12,7 @@ def load_configurations():
         mappings = json.load(f)
 
     for dataset, mapping in mappings.items():
-        if all(k.lstrip("-").isdigit() for k in mapping.keys()):
+        if all(k.lstrip("-").isdigit() for k in mapping.keys()): # To convert the strings in the json to integers
             mappings[dataset] = {int(k): v for k, v in mapping.items()}
     return datasets_config, mappings
 
@@ -23,10 +23,10 @@ def fine_tune_model():
     fine_tune_bertweet = FineTuneBerTweet(
         "vinai/bertweet-base", "Dissertation/Code/training/bertweetCheckpoints"
     )
-    fine_tune_bertweet.load_model()
+    
 
     for dataset_cfg in datasets_config["datasets"]:
-
+        fine_tune_bertweet.load_model()
         name = dataset_cfg["name"]
         raw_path = dataset_cfg["path"]
         delimiter = dataset_cfg["delimiter"]
@@ -54,8 +54,9 @@ def fine_tune_model():
         print(f"Number of examples after tokenization: {len(tokenized_datasets)}")
 
         fine_tune_bertweet.fine_tune(train_dataset, val_dataset)
-
-    fine_tune_bertweet.save_model()
+        
+        fine_tune_bertweet.save_model()
+        
 
 
 if __name__ == "__main__":

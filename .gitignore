@@ -1,2 +1,16 @@
 .venv/
-Dissertation/datasets/
+Dissertation/datasets/berTweet/raw/financial_tweets.csv
+Dissertation/datasets/berTweet/raw/tweets_labelled_09042020_16072020.csv
+Dissertation/datasets/berTweet/raw/Twitter_Data.csv
+Dissertation\datasets\berTweet\clean\Formatted_financial_tweets.csv
+Dissertation\datasets\berTweet\clean\Formatted_tweets_labelled_09042020_16072020.csv
+Dissertation\datasets\berTweet\clean\Formatted_Twitter_Data.csv
+Dissertation\Code\training\bertweetCheckpoints\checkpoint-65188
+Dissertation\Code\training\bertweetCheckpoints\checkpoint-97782
+Dissertation\Code\training\models\berTweetSaved\added_tokens.json
+Dissertation\Code\training\models\berTweetSaved\bpe.codes
+Dissertation\Code\training\models\berTweetSaved\config.json
+Dissertation\Code\training\models\berTweetSaved\model.safetensors
+Dissertation\Code\training\models\berTweetSaved\special_tokens_map.json
+Dissertation\Code\training\models\berTweetSaved\tokenizer_config.json
+Dissertation\Code\training\models\berTweetSaved\vocab.txt
