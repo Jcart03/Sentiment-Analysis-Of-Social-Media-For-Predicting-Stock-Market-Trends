@@ -3,7 +3,7 @@ import os
 from tools.cleaner import map as clean_dataset
 from train_BerTweet import FineTuneBerTweet
 from datasets import Dataset
-
+from utils.model_utils import DataLoader
 
 def load_configurations():
     with open("Dissertation/Code/training/config/datasets_config.json") as f:
@@ -20,13 +20,13 @@ def load_configurations():
 def fine_tune_model():
     datasets_config, mappings = load_configurations()
 
-    fine_tune_bertweet = FineTuneBerTweet(
-        "vinai/bertweet-base", "Dissertation/Code/training/bertweetCheckpoints"
-    )
+    
     
 
     for dataset_cfg in datasets_config["datasets"]:
-        fine_tune_bertweet.load_model()
+        
+        
+        
         name = dataset_cfg["name"]
         raw_path = dataset_cfg["path"]
         delimiter = dataset_cfg["delimiter"]
@@ -35,28 +35,36 @@ def fine_tune_model():
         map_dict = mappings[name]
         clean_path = "Dissertation/datasets/berTweet/clean"
 
-        dataset = clean_dataset(
+        clean_file_path = clean_dataset(
             raw_path, delimiter, label_column, text_column, map_dict, clean_path
         )
-
-        dataset = Dataset.from_pandas(dataset)
+        
+        data_loader = DataLoader(clean_file_path)
+        dataset = data_loader.load_data()
 
         print(f"Original dataset size before splitting: {len(dataset)}")
 
-        tokenized_datasets = fine_tune_bertweet.tokenize_data(dataset, text_column)
-
-        split = tokenized_datasets.train_test_split(
-            test_size=0.2, shuffle=True, seed=42
-        )
+        split = dataset.train_test_split(test_size=0.2, seed=42)
         train_dataset = split["train"]
         val_dataset = split["test"]
 
-        print(f"Number of examples after tokenization: {len(tokenized_datasets)}")
-
-        fine_tune_bertweet.fine_tune(train_dataset, val_dataset)
+        print(f"Train: {len(train_dataset)}, Val: {len(val_dataset)}")
         
+        
+        
+        fine_tune_bertweet = FineTuneBerTweet(
+            model_name = "vinai/bertweet-base",
+            checkpoint_path = "Dissertation/Code/training/bertweetCheckpoints",
+            saved_model_path="Dissertation/Code/training/models/berTweetSaved",
+            train_dataset=train_dataset,
+            val_dataset=val_dataset,
+            text_column=dataset_cfg["text_column"]
+        )
+        
+        
+       
+        fine_tune_bertweet.fine_tune()
         fine_tune_bertweet.save_model()
-        
 
 
 if __name__ == "__main__":

@@ -1,6 +1,8 @@
 import pandas as pd
 import os
 from datasets import Dataset
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 
 
@@ -20,7 +22,8 @@ def map(raw_path, delimiter, label, text,  map, clean_path):
     print("NaN values in '", label, "'column after processing:", ds[label].isna().sum())
     
     ds = ds.rename(columns = {label: "labels"})
-    ds.to_csv(os.path.join(clean_path, f"Formatted_{os.path.basename(raw_path)}"), index=False)
+    cleaned_file_path = os.path.join(clean_path, f"Formatted_{os.path.basename(raw_path)}")
+    ds.to_csv(cleaned_file_path, index=False)
     print(ds.head())
     
-    return ds
+    return cleaned_file_path
