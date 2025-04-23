@@ -1,4 +1,5 @@
 import os
+from httplib2 import Credentials
 import pandas as pd
 import torch
 from transformers import (
@@ -114,3 +115,14 @@ class DataLoader:
         df = pd.read_csv(self.path)
         dataset = Dataset.from_pandas(df)
         return dataset
+    
+    
+class LoadFromDrive:
+    def __init__(self, folder_id: str):
+        self_folder_id = folder_id
+        self.credentials = self.load_credentials()
+        self.service = build('drive', 'v3', credentials=self.credentials)
+        
+    def _load_credentials(self):
+        
+        
