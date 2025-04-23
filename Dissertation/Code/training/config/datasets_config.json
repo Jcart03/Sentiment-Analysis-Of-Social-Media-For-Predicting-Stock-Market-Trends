@@ -1,0 +1,27 @@
+
+{
+    "datasets" : [
+        {
+            "name": "financial_tweets",
+            "path": "Dissertation/datasets/berTweet/raw/financial_tweets.csv",
+            "delimiter": ",",
+            "label_column": "sentiment",
+            "text_column": "description"
+            
+        },
+        {
+            "name": "tweets_labelled_09042020_16072020",
+            "path": "Dissertation/datasets/berTweet/raw/tweets_labelled_09042020_16072020.csv",
+            "delimiter": ";",
+            "label_column": "sentiment",
+            "text_column": "text"
+        },
+        {
+            "name": "Twitter_Data",
+            "path": "Dissertation/datasets/berTweet/raw/Twitter_Data.csv",
+            "delimiter": ",",
+            "label_column": "category",
+            "text_column": "clean_text"
+        }
+    ]
+}

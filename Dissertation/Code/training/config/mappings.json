@@ -1,0 +1,18 @@
+
+{
+    "financial_tweets": {
+        "Bearish" : 0,
+        "Neutral" : 1,
+        "Bullish" : 2
+    },
+    "tweets_labelled_09042020_16072020": {
+        "negative" : 0,
+        "neutral" : 1,
+        "positive" : 2
+    },
+    "Twitter_Data": {
+        "-1" : 0,
+        "0" : 1,
+        "1" : 2
+    }   
+}
