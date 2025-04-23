@@ -1,6 +1,8 @@
 import pandas as pd
 import os
 from datasets import Dataset
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 
 
@@ -20,14 +22,21 @@ def map(raw_path, delimiter, label, text,  map, clean_path):
     print("NaN values in '", label, "'column after processing:", ds[label].isna().sum())
     
     ds = ds.rename(columns = {label: "labels"})
-    ds.to_csv(os.path.join(clean_path, f"Formatted_{os.path.basename(raw_path)}"), index=False)
+    cleaned_file_path = os.path.join(clean_path, f"Formatted_{os.path.basename(raw_path)}")
+    ds.to_csv(cleaned_file_path, index=False)
     print(ds.head())
     
-    return ds
+    return cleaned_file_path
     
     
+    #run this through map first
+def prepare_prediction_set(raw_path, stamp_column, ticker_column, sentiment_column, text, clean_path):
+    df = pd.read_csv(raw_path)
+    df["timestamp"] = pd.to_datetime(df["timestamp"], errors = "coerce")
+    cutoff_date = datetime.now() - relativedelta(years=1, months=11)
     
+    df = df[df["timestamp"] >= cutoff_date]
     
-map("Dissertation/datasets/berTweet/raw/financial_tweets.csv", ',', 'sentiment','description', map={'Bearish':0, 'Neutral':1, 'Bullish':2}, clean_path='Dissertation/datasets/berTweet/clean')
-map("Dissertation/datasets/berTweet/raw/tweets_labelled_09042020_16072020.csv", ';', 'sentiment', 'text', map={'negative':0, 'neutral':1, 'positive':2}, clean_path='Dissertation/datasets/berTweet/clean')
-map("Dissertation/datasets/berTweet/raw/Twitter_Data.csv", ',', 'category', 'clean_text', map={-1:0, 0:1, 1:2}, clean_path='Dissertation/datasets/berTweet/clean')
+    df = df[[text, ticker_column, stamp_column, sentiment_column]]
+    
+    df.to_csv(os.path.join(clean_path, f"Formatted_{os.path.basename(raw_path)}"), index=False)
