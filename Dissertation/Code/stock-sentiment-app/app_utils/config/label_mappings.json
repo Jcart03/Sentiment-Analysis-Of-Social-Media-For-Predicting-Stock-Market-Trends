@@ -1,0 +1,14 @@
+{
+    "LABEL_0":{
+        "text": "negative",
+        "numeric": 0
+    },
+    "LABEL_1":{
+        "text": "neutral",
+        "numeric": 1
+    },
+    "LABEL_2":{
+        "text": "positive",
+        "numeric": 2
+    } 
+}
