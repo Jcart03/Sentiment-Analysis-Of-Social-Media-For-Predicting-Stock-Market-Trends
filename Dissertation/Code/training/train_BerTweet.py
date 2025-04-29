@@ -1,4 +1,4 @@
-from utils.model_utils import ModelLoader, DataLoader, DataTokenizer, ModelTrainer, ModelSaver
+from utils.model_utils import SentimentModelLoader, DataLoader, SentimentDataTokenizer, SentimentModelTrainer, ModelSaver
 
 
 # File paths for saving and loading
@@ -17,16 +17,16 @@ class FineTuneBerTweet:
         self.train_dataset = train_dataset
         self.val_dataset = val_dataset
         
-        model_loader = ModelLoader(self.model_name, saved_model_path)
+        model_loader = SentimentModelLoader(self.model_name, saved_model_path)
         self.model, self.tokenizer = model_loader.get_model_and_tokenizer()
         
-        data_tokenizer = DataTokenizer(self.tokenizer)
+        data_tokenizer = SentimentDataTokenizer(self.tokenizer)
         self.train_dataset = data_tokenizer.tokenize_data(self.train_dataset, self.text_column)
         self.val_dataset = data_tokenizer.tokenize_data(self.val_dataset, self.text_column)        
         
 
     def fine_tune(self):
-        model_trainer = ModelTrainer(self.model, self.tokenizer, self.checkpoint_path)
+        model_trainer = SentimentModelTrainer(self.model, self.tokenizer, self.checkpoint_path)
         model_trainer.fine_tune(self.train_dataset, self.val_dataset)
 
     def save_model(self):

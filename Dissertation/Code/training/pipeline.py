@@ -4,7 +4,7 @@ from tools.cleaner import map as clean_dataset
 from train_BerTweet import FineTuneBerTweet
 from datasets import Dataset
 from utils.model_utils import DataLoader
-
+from train_prediction import TrainXGBoostModel
 def load_configurations():
     with open("Dissertation/Code/training/config/datasets_config.json") as f:
         datasets_config = json.load(f)
@@ -17,7 +17,7 @@ def load_configurations():
     return datasets_config, mappings
 
 
-def fine_tune_model():
+def fine_tune_sentiment_model():
     datasets_config, mappings = load_configurations()
 
     
@@ -66,6 +66,33 @@ def fine_tune_model():
         fine_tune_bertweet.fine_tune()
         fine_tune_bertweet.save_model()
 
+def fine_tune_prediction_model():
+        with open("Dissertation/Code/training/config/predictiondatset_config.json", "r") as f:
+            prediction_config = json.load(f)
+            
+        dataset_cfg = prediction_config["prediction_dataset"]
+        
+        clean_path = "Dissertation/datasets/predictions/clean/traindataLabelled.csv"
+        data_loader = DataLoader(clean_path)
+        dataset = data_loader.load_data()
+        
+        print(f"Original dataset size before splitting: {len(dataset)}")
+        
+        split = dataset.train_test_split(test_size = 0.2, seed=42)
+        train_data = split["train"].to_pandas()
+        val_data = split["test"].to_pandas()
+        
+        print(f"Train: {len(train_data)}, Val: {len(val_data)}")
+        
+        model_trainer = TrainXGBoostModel(
+            checkpoint_path = "Dissertation/Code/training/predictionsCheckpoints/prediction_model.xgb",
+            saved_model_path="Dissertation/Code/training/models/predictionSaved/prediction_model.xgb",
+            train_data=train_data,
+            val_data=val_data,
+            feature_columns=dataset_cfg["feature_columns"],
+            label_column=dataset_cfg["label_column"]
+        )
+        model_trainer.train()
 
 if __name__ == "__main__":
-    fine_tune_model()
+   fine_tune_prediction_model()
