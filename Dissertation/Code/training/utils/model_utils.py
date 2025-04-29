@@ -9,9 +9,11 @@ from transformers import (
     TrainingArguments,
 )
 from datasets import Dataset
+import xgboost as xgb
 
 
-class ModelLoader:
+
+class SentimentModelLoader:
     def __init__(self, model_name, saved_model_path=None, num_labels=3):
         self.model_name = model_name
         self.saved_model_path = saved_model_path
@@ -21,7 +23,7 @@ class ModelLoader:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.load_model()
         
-    def load_model(self):
+    def load_sentiment_model(self):
         
         try: 
             if self.saved_model_path and os.path.exists(self.saved_model_path) and os.listdir(self.saved_model_path):
@@ -56,7 +58,7 @@ class ModelSaver:
             print(f"Failed to save model: {e}")
             
 
-class ModelTrainer:
+class SentimentModelTrainer:
     def __init__(self, model, tokenizer, checkpoint_path):
         self.model = model
         self.tokenizer = tokenizer
@@ -89,7 +91,7 @@ class ModelTrainer:
         trainer.train()
         
         
-class DataTokenizer:
+class SentimentDataTokenizer:
     def __init__(self, tokenizer):
         self.tokenizer = tokenizer
     
@@ -128,4 +130,68 @@ class LoadFromDrive:
         self.credentials = self.load_credentials()
         self.service = build('drive', 'v3', credentials=self.credentials)
         
+class PredictionModelLoader:
+    def __init__(self, saved_model_path=None):
+        self.saved_model_path = saved_model_path
+        self.model = None   
+        self.load_model()
+    def load_model(self):
+        try:
+            if self.saved_model_path and os.path.exists(self.saved_model_path):
+                self.model = xgb.Booster()
+                self.model.load_model(self.saved_model_path)
+            else:
+                self.model = xgb.XGBClassifier(objective='multi:softprob')
+                
+        except Exception as e:
+            None
     
+    def get_model(self):
+        return self.model
+    
+    
+class PredictionModelSaver:
+    def __init__(self, model, saved_model_path):
+        self.model = model
+        self.saved_model_path = saved_model_path
+        
+    def save(self):
+        try:
+            self.model.save_model(self.saved_model_path)
+            print(f"Model saved to {self.saved_model_path}")
+        except Exception as e:
+            print(f"Failed to save model: {e}")
+            
+            
+            
+class PredictionTrainer:
+    def __init__(self, model, saved_model_path):
+        self.model = model
+        self.saved_model_path = saved_model_path
+        
+    def train(self, train_data, val_data, num_rounds=100, params=None):
+        if params is None:
+            params = {
+                'objective': 'multi:softprob',
+                'device' : 'cpu',
+                'num_class': 3,
+                'eval_metric': 'mlogloss',
+                'tree_method': 'exact',
+                'learning_rate': 0.054,
+                'max_depth': 6,
+                'min_child_weight': 1,
+                'subsample': 0.5,
+                'colsample_bytree': 1,
+                'gamma': 0.01,
+                'lambda': 1,
+            }
+        dtrain = xgb.DMatrix(train_data[0], label=train_data[1])
+        dval = xgb.DMatrix(val_data[0], label=val_data[1])
+        print(dtrain)
+        print(dval)
+        evals = [(dtrain, 'train'), (dval, 'eval')]
+        self.model = xgb.train(params=params, dtrain=dtrain, num_boost_round=num_rounds, evals= evals, early_stopping_rounds=2)
+        model_saver = PredictionModelSaver(self.model, self.saved_model_path)
+        model_saver.save()
+        
+        
