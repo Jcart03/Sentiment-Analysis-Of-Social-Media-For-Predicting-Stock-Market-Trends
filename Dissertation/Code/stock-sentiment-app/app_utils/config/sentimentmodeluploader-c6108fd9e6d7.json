@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "sentimentmodeluploader",
+  "private_key_id": "c6108fd9e6d7d9650825aa0ae5ac813258564980",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCLIfwdYllATu27\nMO2X2VrGf/cxEpGu2pOYiMjNAUiW4HH5MvjfhQgRGPs1vmxjQc2uxMa8R/VIjk68\nvr3J3EMh8TTGNA4Fnc2l+PyT+kBdugrvsRY8aSYxg2ZQpSyUAd8i+egEyM3AHkls\n3mIFg/Xlhld2rUmSjYR22jwjokO7NUg13rIKMwLPk2IaEYjQA35EsSn75c9J9fFT\nM1im/4v43W9YoNBPf708N2oOSID1lvIh7OKuUoWwWV2Ui5Ucm2eAuexBGRAkvseZ\nu5xgxpQLAg1mcbPL0WHYdKmkXgqnFqqr54TxRiDucU1ok3neeWiGCAef3l098tyV\nW985p+1ZAgMBAAECggEACL8iMla0da6Ak3wH87veUQxKZfNc5TkofjZbKUgjYBjM\nEXZ63tJmJ20CneZSugqw+4OzWrLLYLxRhtwW4lHOhpu7TZqIJyI8g2qbtlHNKhdA\nCMGBPFr/46z3CarYmpVjibdcNrDI/oLo6scwMliRZNSFOxi5v1TWNwKRNUxGJcaj\n/CWLrFteAgotkitAfGeFCHJEAyiOZeYSGddRBtepGzRoSh1qOXAoXICtB1mx0YAz\nHqvIed0a8T4UwsNNB+q2I1R2H9C5kPXmup55kq0qz5E1b5eRQrIJ6pferKmdl58K\nS9bfFp+R3T9k1DLpLw73VlU45wDrhdZ7XDxyPwj/YQKBgQDESmd/35395THD8Cyx\nHj86F6mJFKt+WSXsjR9ZOJ/4Xc5ejbLUp/7eWD0zMd8wT9DqysxYL9ORUdClvmYy\ntt1FROBRxt7s1Ter6oAIKgt6yUQgbLgZ74+UK7EOVu/ko712flOy8/OZRw4yiffx\nYqFt2i4FTWoBunjzt/YEMz3PywKBgQC1dJEOQgE8wB4JwvIZVM+cKZgBAEueFdED\nSbfbwVgfmzadj2v5PXnMtLCM2v/cIWxEDh+ZjY8PUI1Q4xEEP3ulFudud9AsJ0v5\nWmePK9+Ky66zwrwIkfxr9TpU7nfzO7qDiHjLrt2vHxtlNZ0v4T18FPNodaJt+6WU\nMOuql1zK6wKBgQCEsUOcNv+n1hs5OJANv8PAMqTB7T4tMHipm5DYkKXbkRZj5uhA\nR7zMc9wTUqBtGVfCkQtohhRAhY1FrhuKJwIXxILb5VNnyI9U4TZhzoJqI8qxHK2r\nor1tzcdoSS7sYiA/DRDpxW4kbNtVIN2CyUkVaMt5fCawOm1vXCmsFzOu1wKBgGfP\ntqVHkdmluAmxpDxlzxjymuoHtztME/YjmLJ63OXIMOjXgthnGWXKAi+zoynXXU9a\nHS4GVNBYL2EVZ0jc4OpEPkdu+IQqP0b7N8ArQ4rumJZzVIw6qQVCmQq6G5nmlABo\ndWNiOaXU0CGJGNKptDlm6xLaKgFuNP6hNlK0ofvdAoGAOyL8T1JIyUyL570SR/Sn\n1aESEyAUl+9k37vY6sX4vFmoGvCRxZ4d9s8xxol2WIQclAMtjbgSa4d3ajjDPUNZ\n5q9M1A2Kf+9qkBltO+I6XZEC20qCI5e32iS2c1wMSVn6FeDFCneeIdHbQo9ZFsaV\nxIjR31EM5BEq7borwRfHEdw=\n-----END PRIVATE KEY-----\n",
+  "client_email": "drive-access@sentimentmodeluploader.iam.gserviceaccount.com",
+  "client_id": "103024694736110036439",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/drive-access%40sentimentmodeluploader.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

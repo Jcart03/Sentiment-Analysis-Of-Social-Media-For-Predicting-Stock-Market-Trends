@@ -10,6 +10,9 @@ from transformers import (
 )
 from datasets import Dataset
 import xgboost as xgb
+from sklearn.metrics import accuracy_score, f1_score, confusion_matrix, classification_report
+import numpy as np
+from sklearn.model_selection import GridSearchCV
 
 
 
@@ -21,7 +24,7 @@ class SentimentModelLoader:
         self.model = None
         self.model_tokenizer = None
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.load_model()
+        self.load_sentiment_model()
         
     def load_sentiment_model(self):
         
@@ -169,28 +172,45 @@ class PredictionTrainer:
         self.model = model
         self.saved_model_path = saved_model_path
         
-    def train(self, train_data, val_data, num_rounds=100, params=None):
+    def train(self, train_data, val_data, num_rounds=500, params=None):
         if params is None:
-            params = {
-                'objective': 'multi:softprob',
-                'device' : 'cpu',
-                'num_class': 3,
-                'eval_metric': 'mlogloss',
-                'tree_method': 'exact',
-                'learning_rate': 0.054,
-                'max_depth': 6,
-                'min_child_weight': 1,
-                'subsample': 0.5,
-                'colsample_bytree': 1,
-                'gamma': 0.01,
-                'lambda': 1,
+            param_grid = {
+                'objective': ['multi:softprob'],
+                'device' : ['cpu'],
+                'num_class': [3],
+                'eval_metric': ['mlogloss'],
+                'tree_method': ['exact'],
+                'learning_rate': [0.1, 0.05, 0.1, 0.2],
+                'max_depth': [3, 5, 6, 8, 10],
+                'min_child_weight': [1, 2, 3, 5],
+                'subsample': [0.7, 0.8, 0.9],
+                'colsample_bytree': [0.7, 0.8, 0.9],
+                'alpha': [0.1, 0.5, 1, 2],
+                'lambda': [1, 2, 3],
+                'gamma': [0, 1, 3, 5, 6],
+                'booster': ['gbtree']
             }
         dtrain = xgb.DMatrix(train_data[0], label=train_data[1])
         dval = xgb.DMatrix(val_data[0], label=val_data[1])
         print(dtrain)
         print(dval)
         evals = [(dtrain, 'train'), (dval, 'eval')]
-        self.model = xgb.train(params=params, dtrain=dtrain, num_boost_round=num_rounds, evals= evals, early_stopping_rounds=2)
+        xgb_model = xgb.XGBClassifier(use_label_encoder=False, eval_metric='mlogloss')
+        grid_search = GridSearchCV(estimator = xgb_model, param_grid = param_grid, scoring = 'accuracy', cv=2, verbose=3, n_jobs=1)
+        grid_search.fit(train_data[0], train_data[1])
+        
+        print("Best Params found: ", grid_search.best_params_)
+        print("Best Cross-validation Accuracy: ", grid_search.best_score_)
+        best_model = grid_search.best_estimator_
+        self.model = xgb.train(best_model.get_xgb_params(), dtrain=dtrain, num_boost_round=num_rounds, evals= evals, early_stopping_rounds=10)
+        
+        y_pred_probs = self.model.predict(dval)
+        y_pred = np.argmax(y_pred_probs, axis=1)
+        print("Accuracy: ", accuracy_score(val_data[1], y_pred))
+        print("F1 Score (macro): ", f1_score(val_data[1], y_pred, average='macro'))
+        print("F1 Score (weighted): ", f1_score(val_data[1], y_pred, average='weighted'))
+        print("Confusion Matrix: ", confusion_matrix(val_data[1], y_pred))
+        print("Classification Report: ", classification_report(val_data[1], y_pred) )
         model_saver = PredictionModelSaver(self.model, self.saved_model_path)
         model_saver.save()
         

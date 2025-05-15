@@ -1,13 +1,3 @@
 {
-    "subreddits": [
-      {
-        "name": "stocks"
-      },
-      {
-        "name": "investing"
-      },
-      {
-        "name": "financialindependence"
-      }
-    ]
-  }
+    "subreddits": [ "stocks", "investing","financialindependence"]
+}

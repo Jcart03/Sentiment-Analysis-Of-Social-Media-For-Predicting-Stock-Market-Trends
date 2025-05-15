@@ -25,7 +25,8 @@ class PostFetcher:
         
     def fetch_posts(self, subreddit_name, search_terms, limit=10):
         subreddit = self.reddit_client.subreddit(subreddit_name)
-        return subreddit.search(' OR '.join(search_terms), limit=limit, time_filter="week")
+        query = ' OR '.join(term.strip() for term in search_terms if term.strip())
+        return subreddit.search(query, limit=limit, time_filter="week")
     
     
 class CommentProcessor:
@@ -33,13 +34,17 @@ class CommentProcessor:
         self.filtered_comments = []
         
     def filter_comments(self, posts, search_terms, ticker):
-        return [
-            self._parse_comment(comment)
-            for post in posts
-            if self._is_post_relevant(post, search_terms)
-            for comment in post.comments.list()
-            if self._is_comment_recent(comment) and self._is_comment_relevant(comment, search_terms, ticker)
-        ]
+        filtered_comments = []
+        for post in posts:
+            if self._is_post_relevant(post, search_terms):
+                post.comments.replace_more(limit=0)
+                
+                for comment in post.comments.list():
+                    
+                    if self._is_comment_recent(comment) or self._is_comment_relevant(comment, search_terms, ticker):
+                        filtered_comments.append(self._parse_comment(comment))
+        print(filtered_comments)
+        return filtered_comments
     
     def _is_post_relevant(self, post, search_terms):
         return any(term.lower() in post.title.lower() for term in search_terms)
@@ -63,11 +68,17 @@ class ScraperAPI:
         self._post_fetcher = PostFetcher(self._reddit_client)
         self._comment_processor = CommentProcessor()
         self._results = None
-    def get_recent_comments(self, subreddit_name, company_names, ticker, limit=10):
-       search_terms = [ticker, *company_names]
-       posts = self._post_fetcher.fetch_posts(subreddit_name, search_terms, limit=limit)
-       filtered_comments = self._comment_processor.filter_comments(posts, search_terms, ticker)
-       self._results = CommentBatchDTO(comments=filtered_comments)
+    def get_recent_comments(self, subreddit_names, company_names, ticker, limit=10):
+        all_comments = [] 
+        search_terms = [ticker, *company_names]
+        for subreddit in subreddit_names:
+            posts = self._post_fetcher.fetch_posts(subreddit, search_terms, limit=limit)
+            
+            filtered_comments = self._comment_processor.filter_comments(posts, search_terms, ticker)
+            print(filtered_comments)
+            all_comments.extend(filtered_comments)
+        print(all_comments)
+        self._results = CommentBatchDTO(comments=all_comments)
        
 
        

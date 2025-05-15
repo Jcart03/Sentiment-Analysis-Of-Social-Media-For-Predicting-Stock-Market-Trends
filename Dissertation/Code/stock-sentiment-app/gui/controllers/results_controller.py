@@ -1,39 +1,53 @@
-from PyQt6.QtWidgets import QMessageBox
+from PyQt6.QtWidgets import QMessageBox, QLabel, QVBoxLayout, QHBoxLayout 
 from app_utils.handlers.error_handler import ErrorHandler
+from matplotlib.ticker import MaxNLocator
+
 
 class ResultsController:
     
     
-    def __init__ (self, resultsPage):
-        self.view = resultsPage
+    def __init__ (self, resultspage):
+        self.view = resultspage
         self.error_handler = ErrorHandler()
         self.error_handler.error_signal.connect(self.update_error)
         self.error_handler.confirmation_signal.connect(self.send_message)
         
         
-    def update_results_single_sentiment(self, results: dict):
-        sentiment = results.get("sentiment", "N/A")
-        sentiment_score = results.get("sentiment_score", "N/A")
-        
-        self.view.sentiment_label.setText(f"Sentiment: {sentiment}")
-        self.view.confidence_label.setText(f"confidence: {sentiment_score:.2f}")
+  
     
     ##### Mainly for testing though I might add a button for just sentiment and another one for the full pipeline
-    def update_results_bulk_sentiment(self, results: dict):
-        avg_confidence = results.get("avg_confidence", "N/A")
-        confidence_label = results.get("confidence_label", "N/A")
-        avg_sentiment = results.get("avg_sentiment", "N/A")
-        sentiment_label = results.get("sentiment_label", "N/A")
-        positive_pct = results.get("positive_pct", "N/A")
-        neutral_pct = results.get("neutral_pct", "N/A")
-        negative_pct = results.get("negative_pct", "N/A")
-        sentiment_std = results.get("sentiment_std", "N/A")
-        confidence_std = results.get("confidence_std", "N/A")
-        tweet_volume = results.get("tweet_volume", "N/A")
+    def display_results(self, prediction: str, probs: dict, sentiment_result: dict):
+        self.view.prediction_label.setText(f"Prediction: {prediction.upper()}")
+        self.view.metrics_label.setText(
+            "Sentiment Summary: \n"
+            f"Avg_Sentiment: {sentiment_result['avg_sentiment']:.2f} ({sentiment_result['sentiment_label']})\n"
+            f"Standard Deviation: {sentiment_result['sentiment_std']:.2f}\n"
+            f"Volume: {sentiment_result['volume']}\n")
+        
+        self.view.prob_chart.figure.clear()
+        ax = self.view.prob_chart.figure.add_subplot(111)
+        labels = list(probs.keys())
+        values = [probs[k] for k in labels]
+        
+        ax.bar(labels, values, color=['green' if k==prediction.lower() else 'gray' for k in labels])
+        ax.set_title("Prediction Probabilities")
+        ax.set_ylabel("Probability")
+        ax.yaxis.set_major_locator(MaxNLocator(nbins=4))
+        self.view.prob_chart.draw()
         
         
-    def update_results_predict(self, results:dict):
-        predicted_movement = results.get("predicted_movement", "N/A")
+        self.view.sentiment_pie.figure.clear()
+        ax2 = self.view.sentiment_pie.figure.add_subplot(111)
+        sentiment_parts = [
+            sentiment_result['positive_pct'],
+            sentiment_result['neutral_pct'],
+            sentiment_result['negative_pct']
+            ]
+        labels = ['Positive', 'Neutral', 'Negative']
+        colors = ['green', 'gold', 'red']
+        ax2.pie(sentiment_parts, labels=labels, colors=colors, autopct= '%1.1f%%', startangle=140)
+        ax2.set_title("Sentiment Breakdown")
+        self.view.sentiment_pie.draw_idle()
         
         
         

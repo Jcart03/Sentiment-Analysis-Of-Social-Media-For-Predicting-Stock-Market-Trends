@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from datetime import datetime
+import pandas as pd
 @dataclass
 class CommentDTO:
     comment:str
@@ -23,4 +24,9 @@ class CommentBatchDTO:
     def get_comments(self)->list[CommentDTO]:return self.comments
     
     def get_comments_as_strings(self)->list[str]:return [comment.format_comment() for comment in self.comments]
-   
+    def to_pandas(self)-> pd.DataFrame:return pd.DataFrame([{
+        "comment": c.comment,
+        "score": c.score,
+        "timestamp": c.timestamp,
+        "date": c.date
+        } for c in self.comments])

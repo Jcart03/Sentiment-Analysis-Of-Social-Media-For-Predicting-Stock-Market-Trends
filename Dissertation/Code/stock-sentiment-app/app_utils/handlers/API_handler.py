@@ -1,28 +1,41 @@
 from DTOs.Comment import CommentBatchDTO, CommentDTO
 from DTOs.Stock import StockDTO
+from DTOs.Sentiment import SentimentBatchDTO
 
 
 
-from api_housing.scraper_api import ScraperAPI
-from api_housing.finance_api import FinanceAPI
+from app_utils.api_housing.scraper_api import ScraperAPI
+from app_utils.api_housing.finance_api import FinanceAPI
 import json
 from datetime import datetime, timezone
 class APIHandler:
     def __init__(self):
-        self._scraper_api = ScraperAPI()
+        self._scraper_api = ScraperAPI( "RRyDC9aJ-EHivs_Q6nDOoA", 	"I-gumhH5W60wITJ8ZsnyYkpUIiuifg",  "Extreme_Radish1654")
         self._finance_api = FinanceAPI()
+        self._comments: CommentBatchDTO # unused but can be utilised later depending on how this evolves (REMOVED FOR SPEED REASONS)
+        self._stocks:StockDTO
         
         
-    def fetch_comments(self, subreddit:str, ticker:str):
+        
+    def fetch_comments(self, ticker:str):
+        print("fetching Comments")
         with open("Dissertation/Code/stock-sentiment-app/app_utils/config/company_names.json", "r") as f:
            company_names_cfg =  json.load(f)
+           print(company_names_cfg)
+        with open("Dissertation/Code/stock-sentiment-app/app_utils/config/subreddits.json", "r") as q:
+            subreddit_names_cfg = json.load(q)
+            print(subreddit_names_cfg)
+        company_names = company_names_cfg[ticker]['company_names']
+        subreddits = subreddit_names_cfg['subreddits']
+        print(f"Fetching comments for: {subreddits}, {company_names}, {ticker}")
+        self._scraper_api.get_recent_comments(subreddits, company_names, ticker)
+        print("Comments Fetched!")
+        return self._scraper_api.filtered_comments
         
-        company_names = company_names_cfg[ticker]
-        self._scraper_api.get_recent_comments(subreddit, ticker, company_names)
-        self._comments = self._scraper_api.filtered_comments()
-        
-        
-        
-    def get_finance_data(self, ):
-        self._finance_api.get_price_data(ticker, date)
+    def get_finance_data(self, ticker, date):
+        self._stocks.add_stock(self._finance_api.get_price_data(ticker, date))
+    
+
+       
+       
     

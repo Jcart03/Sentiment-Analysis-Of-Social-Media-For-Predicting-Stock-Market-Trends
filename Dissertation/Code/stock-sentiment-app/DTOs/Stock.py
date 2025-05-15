@@ -6,8 +6,8 @@ class StockDTO:
     ticker: str
     open_price: float
     close_price: float
-    high: float
-    low: float
+    high_price: float
+    low_price: float
     volume: int
     date: str
 
@@ -16,7 +16,7 @@ def format_stock_data(self)->str:
 
 @dataclass
 class StockBatchDTO:
-    sotcks: List[StockDTO] = field(default_factory=list)
+    stocks: List[StockDTO] = field(default_factory=list)
     
     def add_stock(self, stock: StockDTO):
         self.stocks.append(stock)
