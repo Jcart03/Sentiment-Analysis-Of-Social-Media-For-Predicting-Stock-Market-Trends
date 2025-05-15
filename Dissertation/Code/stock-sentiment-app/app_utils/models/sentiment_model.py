@@ -1,6 +1,8 @@
 import json
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
-from handlers.error_handler import ErrorHandler
+import torch
+from ..handlers.error_handler import ErrorHandler
+import torch.nn.functional as F
 
 
 class SentimentModel:
@@ -16,7 +18,7 @@ class SentimentModel:
             
     
     """
-    def __init__(self, model_path:str, mapping_path:str):
+    def __init__(self, model_path = "Dissertation/Code/stock-sentiment-app/app_utils/models/Model_files", mapping_path = "Dissertation/Code/stock-sentiment-app/app_utils/config/label_mappings.json"):
         self._error_handler = ErrorHandler()
         self._model_path = model_path
         self._mapping_path = mapping_path
@@ -25,35 +27,48 @@ class SentimentModel:
         self._human_sentiment:str = ""
         self._raw_sentiment:int = 0
         
-        if model_path and mapping_path:
-            self.load_model()
+        self.tokenizer = None
+        self.model = None
+        self.label_mapping = None
         
         
     def load_model(self):
-        if not self._model_path or not self.mapping_path:
+        print("[Sentiment_Model] Loading Sentiment...")
+        if not self._model_path or not self._mapping_path:
             self._error_handler.handle_error("SET MAPPING AND MODEL PATH FIRST", 5)
-        self.tokenizer = AutoTokenizer(self._model_path)
-        self.model = AutoModelForSequenceClassification(self._model_path)
-        self.sentiment_pipeline = pipeline("text-classification",
-                                           model = self.model,
-                                           tokenizer = self.tokenizer)
-        with open(self.mapping_path, "r") as f:
-            self.label_mapping = json.load(f)
-        
+        try:
+            self.tokenizer = AutoTokenizer.from_pretrained(self._model_path)
+            self.model = AutoModelForSequenceClassification.from_pretrained(self._model_path)
+            
+            
+            with open(self._mapping_path, "r") as f:
+                self.label_mapping = json.load(f)
+        except Exception as e:
+            self._error_handler.handle_error(f"Error loading model or tokenizer...", 400)
+            
+            
+            
     def analyze(self, text: str) -> dict:
-        result = self.sentiment_pipeline(text)
-        label = result[0]['label']
-        score = result[0]['score']
+        if not self.model or not self.tokenizer:
+            self._error_handler.handle_error("Sentiment model loaded incorrectly", 401)
+            return {}
+        inputs = self.tokenizer(text, return_tensors="pt", truncation = True, padding = "max_length", max_length = 128)
+        
+        with torch.no_grad():
+            outputs = self.model(**inputs).logits
+
+        predicted_index = outputs.argmax(dim=-1).item()
+        labels = self.model.config.id2label
+        label = labels[predicted_index]
+        
         
         self._result =  {
             "label": label,
             "text": self.label_mapping[label]['text'],
-            "score": score,
-            "numeric": self.label_mapping[label]['numeric_label']  
+            "numeric": self.label_mapping[label]['numeric']  
         }
         self._human_sentiment = self.label_mapping[label]['text']
-        self._score = score
-        self._raw_sentiment = self.label_mapping[label]['numeric_label']
+        self._raw_sentiment = self.label_mapping[label]['numeric']
         
     
     @property

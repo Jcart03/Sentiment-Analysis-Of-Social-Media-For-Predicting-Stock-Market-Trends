@@ -1,10 +1,41 @@
-{
-    "$TSLA": {
+ {
+    "TSLA": {
         "company_names": [
-           "tesla",
+            "tesla",
             "TSLA",
+            "$TSLA",
             "Elon",
             "musk"
+        ]
+    },
+    "AAPL": {
+        "company_names": [
+            "apple",
+            "AAPL",
+            "$APPL",
+            "iphone",
+            "macbook",
+            "cook"
+        ]
+    },
+    "GOOGL": {
+        "company_names": [
+            "google",
+            "GOOGL",
+            "$GOOGL",
+            "alphabet",
+            "pichai",
+            "android"
+        ]
+    },
+    "AMZN": {
+        "company_names": [
+            "amazon",
+            "AMZN",
+            "$AMZN",
+            "bezos",
+            "prime",
+            "aws"
         ]
     }
 }

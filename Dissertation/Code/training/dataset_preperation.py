@@ -31,12 +31,7 @@ class TweetAggregator:
         self.sentiment_column = sentiment_column
         self.timestamp_column = timestamp_column
     
-    def aggregate(self, df: pd.DataFrame) -> pd.DataFrame:
-        df[self.timestamp_column] = pd.to_datetime(df[self.timestamp_column], errors="coerce", utc=True)
-        
-        df['date'] = df[self.timestamp_column].dt.date
-        
-        def get_correct_symbol(ticker):
+    def _get_correct_symbol(self, ticker):
             ######### found a list of some of the stock tickers that require a -USD suffix on yahoo finance
             symbol_mapping = {
                 'BTC': 'BTC-USD',
@@ -75,15 +70,17 @@ class TweetAggregator:
                 'MASK': 'MASK-USD',
                 'NDX': '^NDX'
             }
+            return symbol_mapping.get(ticker, ticker)
+                
+    
+    def aggregate(self, df: pd.DataFrame) -> pd.DataFrame:
+        df[self.timestamp_column] = pd.to_datetime(df[self.timestamp_column], errors="coerce", utc=True)
         
-            if ticker in symbol_mapping:
-                return symbol_mapping[ticker]
-            else:
-                return ticker
+        df['date'] = df[self.timestamp_column].dt.date
         
         df['ticker_symbol'] = df[self.ticker_column].apply(lambda x: re.findall(r'\$(\w+)', str(x)))
         ## will try grouping by hour first to see how that effects the dataset
-        df['ticker_symbol'] = df['ticker_symbol'].apply(lambda x: [get_correct_symbol(t) for t in x])
+        df['ticker_symbol'] = df['ticker_symbol'].apply(lambda x: [self._get_correct_symbol(t) for t in x])
         df = df.explode('ticker_symbol')
         df = df[df['ticker_symbol'].notna() & (df['ticker_symbol'] != '')]
         
@@ -93,110 +90,117 @@ class TweetAggregator:
         
         
         aggregated = grouped.agg(
-            volume = (self.timestamp_column, lambda x: x.count()),
+            volume = ('timestamp', 'count'),
             negative_pct =(self.sentiment_column, lambda x:(x == 0).mean()),
             neutral_pct = (self.sentiment_column, lambda x:(x==1).mean()),
             positive_pct = (self.sentiment_column,lambda x: (x==2).mean()),
-            sentiment_std = (self.sentiment_column, lambda x: x.std()),
+            sentiment_std = (self.sentiment_column,lambda x: x.std()),
             sentiment_avg = (self.sentiment_column, lambda x: x.mean())
             ).reset_index()
         
-        aggregated = aggregated[aggregated['volume'] > 1]
-        aggregated = aggregated[aggregated['ticker_symbol'] != '0X0']
+        return aggregated[(aggregated['volume'] > 1) & (aggregated['ticker_symbol'] != '0X0')]
+
         
         
         
-        
-        return aggregated
+
     
     
-    def add_price_data(self, df: pd.DataFrame, timestamp_column: str):
+    def get_price_data(self, ticker, date):
+        time.sleep(random.randint(3, 7))
         
-        
-        
-        def get_price(ticker, date):
-            time.sleep(random.randint(3, 7))
-            try: 
-                start_date = date
-                end_date = date + pd.Timedelta(days= 2)
-                price_data = yf.download(ticker, start=start_date, end=end_date)
+        try:
+            start_date = pd.to_datetime(date)
+            end_date = start_date + pd.Timedelta(days=2)
+            price_data = yf.download(ticker, start=start_date, end=end_date)
+            return price_data[['Close']].reset_index()
+        except Exception:
+            print(f"Error fetching data for {ticker}") 
                 
-                if not price_data.empty:
-                    price_today = price_data['Close'].iloc[0]
-                    price_tomorrow = price_data['Close'].iloc[1]
-                    print(price_today, price_tomorrow)
-                    return price_tomorrow - price_today
-                else:
-                    return None
-            except Exception:
-                print(f"Error fetching data for {ticker}")
-                return None
-           
-        df['price_diff'] = df.apply(lambda row: get_price(row['ticker_symbol'], row[timestamp_column]), axis = 1)
+            return pd.DataFrame()
         
+        
+    def calculate_price_features(self, df: pd.DataFrame)-> pd.DataFrame:
+        def compute_features(row):
+            price_data = self.get_price_data(row['ticker_symbol'], row['date'])
+            if len(price_data) >= 2:
+                prev_close = price_data['Close'].iloc[0]
+                next_close = price_data['Close'].iloc[1]
+                price_change_pct_1d = ((next_close - prev_close) / prev_close) * 100
+                return pd.Series([prev_close, price_change_pct_1d])
+            return pd.Series([None, None])
+        df[['prev_close', 'price_change_pct_1d']] = df.apply(compute_features, axis=1)
         return df
-if __name__ == "__main__":
-    """
-    path1 = "Dissertation/datasets/predictions/raw/111111Aggregated_Formatted_financial_tweets.csv"
-    path2 = "Dissertation\datasets\predictions\clean\Aggregated_Formatted_financial_tweets.csv"
-    original_dataset = pd.read_csv(path1)
-    new_dataset = pd.read_csv(path2)
-    
-    final_dataset = new_dataset.merge(
-        original_dataset[['ticker_symbol', 'date', 'price_diff']],
-        on=['ticker_symbol', 'date'],
-        how='left')
-    """
-   
-    """ 
-    path = "Dissertation/datasets/predictions/clean/traindataDONE.csv"
-    final_dataset = pd.read_csv(path)
-    final_dataset  = final_dataset[final_dataset['price_diff'].notna()]
-    final_dataset['price_diff'] = final_dataset['price_diff'].apply(lambda x: re.findall(r'-?\d+\.\d+', str(x))[0] if x is not None else None)
-    final_dataset.to_csv("Dissertation/datasets/predictions/clean/traindataDONE.csv", index = False)
-    """
-    path = "Dissertation/datasets/predictions/clean/traindataDONE.csv"
-    final_dataset = pd.read_csv(path)
-    
-    percentage = 2
-    ticker_diff_avg = final_dataset.groupby('ticker_symbol')['price_diff'].mean().abs()
-    final_dataset['threshold'] = final_dataset['ticker_symbol'].map(ticker_diff_avg) * percentage
-    
-    final_dataset['label'] = final_dataset.apply(
-        lambda row: 1 if abs(row['price_diff']) <= row['threshold'] else (2 if row['price_diff'] > 0  else 0),
-        axis=1
-    )
-    final_dataset.to_csv("Dissertation/datasets/predictions/clean/traindataLabelled.csv", index = False)
     
     
-    """
-        dataset_path = "Dissertation/datasets/predictions/raw/Formatted_financial_tweets.csv"
-        df = pd.read_csv(dataset_path)
-    
+    def run_pipeline(self, raw_path:str, output_path:str, threshold:float=0.75):
+        df = pd.read_csv(raw_path)
+        
         preprocessor = TweetPreProcessor(
             text_column="description",
             ticker_column="financial_info",
             sentiment_column="labels",
             timestamp_column="timestamp",
             is_ticker_list=True
-            )
-    
-        processed_df = preprocessor.preprocess(df)
-    
-        aggregator = TweetAggregator(
-            ticker_column="financial_info",
-            sentiment_column="labels",
-            timestamp_column="timestamp"
         )
+        processed_df = preprocessor.preprocess(df)
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        processed_df.to_csv(output_path, index=False)
+        aggregated_df = self.aggregate(processed_df)
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        aggregated_df.to_csv(output_path, index=False)
+        aggregated_df = self.calculate_price_features(aggregated_df)
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        aggregated_df.to_csv(output_path, index=False)
+        aggregated_df["prev_close"] = aggregated_df["prev_close"].apply(self.extract_val)
+        aggregated_df["price_change_pct_1d"] = aggregated_df["price_change_pct_1d"].apply(self.extract_val)
+        labelled_df = self.add_label_column(aggregated_df, threshold = threshold)
+        labelled_df.to_csv(output_path, index=False)
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        labelled_df.to_csv(output_path, index=False)
+def label_price_change( price_change_pct_1d, threshold: float= 2.0):
+        if pd.notnull(price_change_pct_1d):
+            if abs(price_change_pct_1d) <= threshold:
+                return 1
+            elif price_change_pct_1d > 0:
+                return 2
+            else:
+                return 0
+        return None
+def add_label_column(df: pd.DataFrame, threshold: float=0.75)-> pd.DataFrame:
+    df['label'] = df['price_change_pct_1d'].apply(label_price_change, threshold=threshold)
+    return df
     
-        aggregated_df = aggregator.aggregate(processed_df)
     
+def extract_val(val):
+    if pd.isna(val):
+        return None
+    match = re.search(r"(-?\d+\.?\d*)", str(val))
+    return float(match.group(1)) if match else None
     
    
-        output_path = "Dissertation/datasets/predictions/clean"
-        aggregated_file_path = os.path.join(output_path, f"Aggregated_{os.path.basename(dataset_path)}")
-        aggregated_df.to_csv(aggregated_file_path, index=False)
-        print(aggregated_df.head())
+        
+        
+        
     
+if __name__ == "__main__":
+    """raw_path = "Dissertation/datasets/predictions/raw/Formatted_financial_tweets.csv"
+    output_path = "Dissertation/datasets/predictions/clean/prediction_dataset.csv"
+    
+    aggregator = TweetAggregator(
+        ticker_column="financial_info",
+        sentiment_column="labels",
+        timestamp_column="timestamp"
+    )
+    aggregator.run_pipeline(raw_path, output_path)
     """
+    output_path = "Dissertation/datasets/predictions/raw/prediction_datasetsafe.csv"
+    df = pd.read_csv(output_path)
+    df["prev_close"] = df["prev_close"].apply(extract_val)
+    df["price_change_pct_1d"] = df["price_change_pct_1d"].apply(extract_val)
+    final_df = add_label_column(df, 0.75)
+    final_df = final_df.dropna()
+    final_df = final_df.drop(columns = ["price_change_pct_1d", "date", "ticker_symbol"])
+    final_df = final_df[final_df["volume"] >= 4]
+    final_df.to_csv("prediction_dataset.csv", index=False)
     

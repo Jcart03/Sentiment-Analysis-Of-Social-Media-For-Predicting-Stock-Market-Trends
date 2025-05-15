@@ -72,7 +72,7 @@ def fine_tune_prediction_model():
             
         dataset_cfg = prediction_config["prediction_dataset"]
         
-        clean_path = "Dissertation/datasets/predictions/clean/traindataLabelled.csv"
+        clean_path = "Dissertation/datasets/predictions/clean/prediction_dataset.csv"
         data_loader = DataLoader(clean_path)
         dataset = data_loader.load_data()
         
