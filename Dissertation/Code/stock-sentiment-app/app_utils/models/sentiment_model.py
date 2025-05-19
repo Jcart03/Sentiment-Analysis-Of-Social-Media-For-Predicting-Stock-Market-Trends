@@ -1,7 +1,7 @@
 import json
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
 import torch
-from ..handlers.error_handler import ErrorHandler
+from app_utils.handlers.error_handler import ErrorHandler
 import torch.nn.functional as F
 
 
@@ -19,7 +19,7 @@ class SentimentModel:
     
     """
     def __init__(self, model_path = "Dissertation/Code/stock-sentiment-app/app_utils/models/Model_files", mapping_path = "Dissertation/Code/stock-sentiment-app/app_utils/config/label_mappings.json"):
-        self._error_handler = ErrorHandler()
+       
         self._model_path = model_path
         self._mapping_path = mapping_path
         self._score:float = 0
@@ -35,7 +35,7 @@ class SentimentModel:
     def load_model(self):
         print("[Sentiment_Model] Loading Sentiment...")
         if not self._model_path or not self._mapping_path:
-            self._error_handler.handle_error("SET MAPPING AND MODEL PATH FIRST", 5)
+            ErrorHandler().handle_error("SET MAPPING AND MODEL PATH FIRST", 5)
         try:
             self.tokenizer = AutoTokenizer.from_pretrained(self._model_path)
             self.model = AutoModelForSequenceClassification.from_pretrained(self._model_path)
@@ -44,13 +44,13 @@ class SentimentModel:
             with open(self._mapping_path, "r") as f:
                 self.label_mapping = json.load(f)
         except Exception as e:
-            self._error_handler.handle_error(f"Error loading model or tokenizer...", 400)
+            ErrorHandler().handle_error(f"Error loading model or tokenizer...", 400)
             
             
             
     def analyze(self, text: str) -> dict:
         if not self.model or not self.tokenizer:
-            self._error_handler.handle_error("Sentiment model loaded incorrectly", 401)
+            ErrorHandler().handle_error("Sentiment model loaded incorrectly", 401)
             return {}
         inputs = self.tokenizer(text, return_tensors="pt", truncation = True, padding = "max_length", max_length = 128)
         

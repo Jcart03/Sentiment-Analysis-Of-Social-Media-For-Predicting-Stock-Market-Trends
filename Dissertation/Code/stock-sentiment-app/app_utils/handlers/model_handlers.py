@@ -1,10 +1,10 @@
-from .error_handler import ErrorHandler
-from ..models.prediction_model import PredictionModel
-from ..models.sentiment_model import SentimentModel
+from app_utils.handlers.error_handler import ErrorHandler
+from app_utils.models.prediction_model import PredictionModel
+from app_utils.models.sentiment_model import SentimentModel
 from datasets import Dataset
 import numpy as np
 import pandas as pd
-from ..loaders.modelLoader import ModelLoader as ml
+from app_utils.loaders.modelLoader import ModelLoader as ml
 
 class ModelHandler:
     _instance = None
