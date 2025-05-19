@@ -10,11 +10,11 @@ class ErrorHandler(QObject):
     """
     error_signal=pyqtSignal(str, int)
     confirmation_signal=pyqtSignal(str)
-    
+    _initialized=False
     _instance = None
-    
+    _last_error = None
    
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls):
         """
         Neat piece of code to ensure that only one instance of the Errorhandler class is created
         
@@ -22,14 +22,13 @@ class ErrorHandler(QObject):
         the ErrorHandler class exists (meaning I dont have to pass the errorhandler as an object to every class down the pipeline)
 
         Args:
-            *args - purely added to maintain the general python convention for factory methods
-            **kwargs - see above
+            cls: the class
         Returns:
             ErrorHandler: the singleton instance of the ErrorHandler class
         """
        
-        if not cls._instance:
-            cls._instance = super(ErrorHandler, cls).__new__(cls, *args, **kwargs)
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
         return cls._instance
     def __init__(self):
         """
@@ -37,7 +36,12 @@ class ErrorHandler(QObject):
             
             Method is called only once due to the __new__ method, initialises the QObject base class (signals and slots wont work without it)
         """
+       
+        if getattr(self, '_initialized', False):
+            return
         super().__init__()
+        self._initialized = True
+                       
     
     
     def handle_error(self, error_message: str, error_code: int = 0):
@@ -47,6 +51,10 @@ class ErrorHandler(QObject):
             error_message (str):  error message string
             error_code (int, optional): int labelling error code, Defaults to 0.
         """
+        if (error_message, error_code) == self._last_error:
+            print("Duplicate error ignored")
+            return
+        self._last_error = (error_message, error_code)
         self.error_signal.emit(error_message, error_code)
         
     def send_confirmation(self, confirmation_message: str):

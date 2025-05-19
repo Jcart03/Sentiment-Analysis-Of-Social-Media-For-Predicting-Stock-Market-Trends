@@ -1,5 +1,4 @@
 from PyQt6.QtWidgets import QMessageBox, QLabel, QVBoxLayout, QHBoxLayout 
-from app_utils.handlers.error_handler import ErrorHandler
 from matplotlib.ticker import MaxNLocator
 
 
@@ -8,9 +7,7 @@ class ResultsController:
     
     def __init__ (self, resultspage):
         self.view = resultspage
-        self.error_handler = ErrorHandler()
-        self.error_handler.error_signal.connect(self.update_error)
-        self.error_handler.confirmation_signal.connect(self.send_message)
+
         
         
   
@@ -51,8 +48,3 @@ class ResultsController:
         
         
         
-    def update_error(self, error_message, error_code):
-        QMessageBox.critical(self.view, f"Error {error_code}", error_message)
-    
-    def send_message(self, confirmation_message):
-        QMessageBox.information(self.view, "Confirmation", confirmation_message)
