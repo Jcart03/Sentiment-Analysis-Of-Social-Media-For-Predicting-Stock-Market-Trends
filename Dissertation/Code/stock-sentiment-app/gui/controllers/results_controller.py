@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import QMessageBox, QLabel, QVBoxLayout, QHBoxLayout 
 from matplotlib.ticker import MaxNLocator
-
+from DTOs.Features import FeaturesDTO
 
 class ResultsController:
     
@@ -13,13 +13,15 @@ class ResultsController:
   
     
     ##### Mainly for testing though I might add a button for just sentiment and another one for the full pipeline
-    def display_results(self, prediction: str, probs: dict, sentiment_result: dict):
+    def display_results(self, prediction: str, probs: dict, results: dict):
         self.view.prediction_label.setText(f"Prediction: {prediction.upper()}")
         self.view.metrics_label.setText(
+            f"Ticker: {results.get('ticker', 'N/A')}\n"
+            f"Close Price: {results.get('close_price', 'N/A')}\n\n"
             "Sentiment Summary: \n"
-            f"Avg_Sentiment: {sentiment_result['avg_sentiment']:.2f} ({sentiment_result['sentiment_label']})\n"
-            f"Standard Deviation: {sentiment_result['sentiment_std']:.2f}\n"
-            f"Volume: {sentiment_result['volume']}\n")
+            f"Avg_Sentiment: {results['avg_sentiment']:.2f} ({results['sentiment_label']})\n"
+            f"Standard Deviation: {results['sentiment_std']:.2f}\n"
+            f"Volume: {results['volume']}\n")
         
         self.view.prob_chart.figure.clear()
         ax = self.view.prob_chart.figure.add_subplot(111)
@@ -36,9 +38,9 @@ class ResultsController:
         self.view.sentiment_pie.figure.clear()
         ax2 = self.view.sentiment_pie.figure.add_subplot(111)
         sentiment_parts = [
-            sentiment_result['positive_pct'],
-            sentiment_result['neutral_pct'],
-            sentiment_result['negative_pct']
+            results['positive_pct'],
+            results['neutral_pct'],
+            results['negative_pct']
             ]
         labels = ['Positive', 'Neutral', 'Negative']
         colors = ['green', 'gold', 'red']

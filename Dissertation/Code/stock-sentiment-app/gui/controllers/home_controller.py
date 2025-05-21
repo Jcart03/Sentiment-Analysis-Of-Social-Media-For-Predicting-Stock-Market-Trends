@@ -8,6 +8,7 @@ from app_utils.handlers.model_handlers import ModelHandler
 from app_utils.loaders.modelLoader import ModelLoader as ml
 from app_utils.handlers.API_handler import APIHandler
 from DTOs.Comment import CommentBatchDTO
+from DTOs.Features import FeaturesDTO
 class HomeController:
     def __init__(self, homepage, results_controller, tabs):
         self.view = homepage
@@ -16,6 +17,7 @@ class HomeController:
         self.df = None
     
         self.model_handler = ModelHandler()
+        self.api_handler = APIHandler()
         
         ErrorHandler().handle_error("Test", 100)
         print("HomeController")
@@ -68,14 +70,13 @@ class HomeController:
             progress.show()
             
             print("Run Analysis Clicked")    
-            api_handler = APIHandler()
             
             
-            comment_batch = self.run_step(
-                lambda: api_handler.fetch_comments(ticker),
+            self.run_step(
+                lambda: self.api_handler.fetch_comments(ticker),
                 progress, "Fetching Reddit Comments...", 10
             )
-            comment_df = comment_batch.to_pandas()
+            comment_df = self.api_handler._comments.to_pandas()
             if comment_df.empty:
                 ErrorHandler().handle_error("No comments found for this ticker.", 102)
                 return
@@ -95,18 +96,17 @@ class HomeController:
                 progress, "Running sentiment analysis...", 55
             )
             
-            stock_data = self.run_step(
-                lambda: api_handler._finance_api.get_price_data(ticker, datetime.now().strftime("%Y-%m-%d")),
+            
+            self.run_step(
+                lambda: self.api_handler.get_finance_data(ticker, datetime.now().strftime("%Y-%m-%d")),
                 progress, "Fetching financial data...", 70
             )
             
-            closing_price = stock_data.close_price if stock_data else None
-            if closing_price is None:
-                ErrorHandler().handle_error("Unable to fetch closing price.", 103)
-                return
+            
+            features = FeaturesDTO(self.model_handler._sentiments, self.api_handler._stocks)
             
             self.run_step(
-                lambda: self.model_handler.predict_movement(closing_price),
+                lambda: self.model_handler.predict_movement(features),
                 progress, "Predicting market movement...", 85
             )
             
@@ -115,7 +115,8 @@ class HomeController:
             prediction = self.model_handler._prediction
             probs = self.model_handler._probs
             print("[Controller]populating results")
-            self.results_controller.display_results(prediction, probs, self.model_handler._result)
+            results = features.construct_results()
+            self.results_controller.display_results(prediction, probs, results)
             print("[Controller]results populated")
             self.tabs.setCurrentIndex(1)
             

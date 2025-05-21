@@ -3,6 +3,7 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipe
 import torch
 from app_utils.handlers.error_handler import ErrorHandler
 import torch.nn.functional as F
+from DTOs.Sentiment import SentimentDTO
 
 
 class SentimentModel:
@@ -51,7 +52,7 @@ class SentimentModel:
     def analyze(self, text: str) -> dict:
         if not self.model or not self.tokenizer:
             ErrorHandler().handle_error("Sentiment model loaded incorrectly", 401)
-            return {}
+            return
         inputs = self.tokenizer(text, return_tensors="pt", truncation = True, padding = "max_length", max_length = 128)
         
         with torch.no_grad():
@@ -62,13 +63,8 @@ class SentimentModel:
         label = labels[predicted_index]
         
         
-        self._result =  {
-            "label": label,
-            "text": self.label_mapping[label]['text'],
-            "numeric": self.label_mapping[label]['numeric']  
-        }
-        self._human_sentiment = self.label_mapping[label]['text']
-        self._raw_sentiment = self.label_mapping[label]['numeric']
+        self._result =  SentimentDTO(sentiment_numeric=self.label_mapping[label]['numeric'], 
+                                     sentiment_label=self.label_mapping[label]['text'])
         
     
     @property
@@ -80,10 +76,4 @@ class SentimentModel:
     @mapping_path.setter
     def mapping_path(self, mapping_path:str)->None:self._mapping_path=mapping_path
     @property
-    def result(self)->dict:return self._result
-    @property
-    def human_sentiment(self)->str:return self._human_sentiment
-    @property
-    def score(self)->float:return self._score
-    @property
-    def raw_sentiment(self)->int:return self._raw_sentiment
+    def result(self)->SentimentDTO:return self._result

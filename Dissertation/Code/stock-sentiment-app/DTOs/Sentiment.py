@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List
 import statistics
 
@@ -14,7 +14,7 @@ class SentimentDTO:
     
 @dataclass   
 class SentimentBatchDTO:
-    sentiments: List[SentimentDTO]
+    sentiments: List[SentimentDTO] = field(default_factory=list)
     
     
     def add_sentiment(self, sentiment: SentimentDTO):
@@ -47,3 +47,7 @@ class SentimentBatchDTO:
         if len(sentiment_values) > 1:
             return statistics.stdev(sentiment_values)
         return 0.0
+    
+    def len(self) -> int:
+        return len(self.sentiments)
+    
