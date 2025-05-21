@@ -12,7 +12,7 @@ class APIHandler:
     def __init__(self):
         self._scraper_api = ScraperAPI( "<REDACTED>", 	"<REDACTED>",  "<REDACTED>")
         self._finance_api = FinanceAPI()
-        self._comments: CommentBatchDTO # unused but can be utilised later depending on how this evolves (REMOVED FOR SPEED REASONS)
+        self._comments: CommentBatchDTO 
         self._stocks:StockDTO
         
         
@@ -30,10 +30,10 @@ class APIHandler:
         print(f"Fetching comments for: {subreddits}, {company_names}, {ticker}")
         self._scraper_api.get_recent_comments(subreddits, company_names, ticker)
         print("Comments Fetched!")
-        return self._scraper_api.filtered_comments
+        self._comments =  self._scraper_api.filtered_comments
         
     def get_finance_data(self, ticker, date):
-        self._stocks.add_stock(self._finance_api.get_price_data(ticker, date))
+        self._stocks = self._finance_api.get_price_data(ticker, date)
     
 
        
