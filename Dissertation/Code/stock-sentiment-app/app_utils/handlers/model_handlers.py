@@ -21,7 +21,7 @@ class ModelHandler:
         self._sentiment_model = SentimentModel()
         self._prediction_model = PredictionModel()
         self._error_handler = ErrorHandler()
-        self._model_loader= ml("Dissertation/Code/stock-sentiment-app/app_utils/config/sentimentmodeluploader-728404e033df.json", "Dissertation/Code/stock-sentiment-app/app_utils/models/Model_files")
+        self._model_loader= ml("Dissertation/Code/stock-sentiment-app/app_utils/config/sentimentmodeluploader-ca54f68e3c84.json", "Dissertation/Code/stock-sentiment-app/app_utils/models/Model_files")
         self._ticker = None
         self._sentiments: SentimentBatchDTO = None
         self._prediction: PredictionDTO = None
