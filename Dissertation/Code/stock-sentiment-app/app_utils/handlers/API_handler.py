@@ -3,7 +3,7 @@ from DTOs.Stock import StockDTO
 from DTOs.Sentiment import SentimentBatchDTO
 
 
-
+from app_utils.handlers.error_handler import ErrorHandler
 from app_utils.api_housing.scraper_api import ScraperAPI
 from app_utils.api_housing.finance_api import FinanceAPI
 import json
@@ -27,8 +27,14 @@ class APIHandler:
             print(subreddit_names_cfg)
         company_names = company_names_cfg[ticker]['company_names']
         subreddits = subreddit_names_cfg['subreddits']
+        
         print(f"Fetching comments for: {subreddits}, {company_names}, {ticker}")
-        self._scraper_api.get_recent_comments(subreddits, company_names, ticker)
+        try: 
+            self._scraper_api.get_recent_comments(subreddits, company_names, ticker)
+        except Exception: 
+            ErrorHandler().handle_error("failed to fetch reddit data. try again......")
+        
+        
         print("Comments Fetched!")
         self._comments =  self._scraper_api.filtered_comments
         

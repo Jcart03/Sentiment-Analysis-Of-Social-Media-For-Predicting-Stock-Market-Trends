@@ -21,24 +21,19 @@ class ModelHandler:
         self._sentiment_model = SentimentModel()
         self._prediction_model = PredictionModel()
         self._error_handler = ErrorHandler()
-        self._model_loader= ml("Dissertation/Code/stock-sentiment-app/app_utils/config/sentimentmodeluploader-c6108fd9e6d7.json", "Dissertation/Code/stock-sentiment-app/app_utils/models/Model_files")
+        self._model_loader= ml("Dissertation/Code/stock-sentiment-app/app_utils/config/sentimentmodeluploader-728404e033df.json", "Dissertation/Code/stock-sentiment-app/app_utils/models/Model_files")
         self._ticker = None
         self._sentiments: SentimentBatchDTO = None
         self._prediction: PredictionDTO = None
         
     
+
     @property
-    def sentiment_scores(self):return self._sentiment_scores
+    def probs(self)-> dict:return self._probs
     @property
-    def confidence_scores(self):return self._confidence_scores
+    def prediction(self)-> str:return self._prediction
     @property
-    def probs(self):return self._probs
-    @property
-    def prediction(self):return self._prediction
-    @property
-    def result(self): return self._result
-    @property
-    def single_result(self):return self._single_result
+    def single_result(self) -> dict:return self._single_result
 
     # Connects to loaders/modelLoader for model download during runtime
     

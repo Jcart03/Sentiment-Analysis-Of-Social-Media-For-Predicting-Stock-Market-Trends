@@ -127,12 +127,7 @@ class DataLoader:
     #        Future feature for runtime loading models from google drive       #
     #                                                                          #
     #############################~~~~~~~~~~~~~~~~~~#############################
-class LoadFromDrive:
-    def __init__(self, folder_id: str):
-        self_folder_id = folder_id
-        self.credentials = self.load_credentials()
-        self.service = build('drive', 'v3', credentials=self.credentials)
-        
+
 class PredictionModelLoader:
     def __init__(self, saved_model_path=None):
         self.saved_model_path = saved_model_path
